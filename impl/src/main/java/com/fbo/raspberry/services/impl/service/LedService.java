@@ -1,5 +1,6 @@
 package com.fbo.raspberry.services.impl.service;
 
+import com.fbo.raspberry.services.impl.parameter.ColorParameter;
 import com.fbo.services.core.model.GenericParameter;
 import com.fbo.services.core.model.RPiAbstractService;
 import com.fbo.services.core.model.ServiceState;
@@ -14,15 +15,20 @@ import java.util.Optional;
  */
 public class LedService extends RPiAbstractService {
 
-    public static final String TEST_WS2801_PATH = "/home/pi/bcm2835/bcm2835-1.42/examples/spi/ws2801_spi_tester";
+    public static final String COLOR_PARAMETER_ID = "color";
+
+    public static final String TEST_WS2801_PATH = "/home/pi/bcm2835/bcm2835-1.42/examples/spi/ws2801_spi_multi";
     public static final String STOP_WS2801_PATH = "/home/pi/bcm2835/bcm2835-1.42/examples/spi/stop";
 
     private final Map<String, GenericParameter> parameterMap = new HashMap<>();
+
+    private final ColorParameter colorParameter = new ColorParameter();
 
     private Optional<Process> processHolder = Optional.empty();
 
     public LedService() {
         super("LED lights", ServiceState.DISABLED);
+        parameterMap.put(COLOR_PARAMETER_ID, colorParameter);
     }
 
     @Override
@@ -34,7 +40,9 @@ public class LedService extends RPiAbstractService {
     protected void innerEnable() {
         System.out.println("Put the lights on...");
         try {
-            Process p = Runtime.getRuntime().exec(TEST_WS2801_PATH);
+            String cmd = TEST_WS2801_PATH + " " + colorParameter.getObjectValue().getCode();
+            System.out.println("COMMAND SENT => " + cmd);
+            Process p = Runtime.getRuntime().exec(cmd);
             processHolder = Optional.of(p);
         } catch (IOException e) {
             e.printStackTrace();
@@ -59,6 +67,9 @@ public class LedService extends RPiAbstractService {
 
     @Override
     public void updateState() {
-        //Nothing to do
+        if (getState() == ServiceState.ENABLED) {
+            disable();
+            enable();
+        }
     }
 }
