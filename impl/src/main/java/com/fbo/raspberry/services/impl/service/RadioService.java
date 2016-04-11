@@ -42,8 +42,10 @@ public class RadioService extends RPiAbstractService {
     public void updateState() {
         if (getState() == ServiceState.NOT_CONFIGURED && stationParameter.getObjectValue() != null) {
             setState(ServiceState.DISABLED);
+        } else if (getState() == ServiceState.ENABLED) {
+            disable();
         }
-        startPlayer();
+        enable();
     }
 
     private void startPlayer() {
